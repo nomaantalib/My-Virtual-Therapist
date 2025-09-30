@@ -1,0 +1,8 @@
+sounddevice
+textblob
+nltk
+numpy
+flask
+requests
+noisereduce
+librosa
