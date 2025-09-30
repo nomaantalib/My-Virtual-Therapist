@@ -22,3 +22,13 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.swp
+
+# congfig files
+config.yaml
+config.py
+secrets.json
+.env
+.env.*
+.envrc
+.env.local
+.config.pyc
