@@ -3,9 +3,12 @@ textblob
 nltk
 numpy
 flask
+flask-socketio
 requests
 noisereduce
 librosa
 deepface
 opencv-python
-tf-keras
+tensorflow
+chromadb
+sentence-transformers

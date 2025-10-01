@@ -32,3 +32,14 @@ secrets.json
 .envrc
 .env.local
 .config.pyc
+
+# Python distribution
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+MANIFEST
+.python-version
