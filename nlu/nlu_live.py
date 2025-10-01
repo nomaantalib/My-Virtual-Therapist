@@ -19,44 +19,20 @@ def setup_nltk():
 setup_nltk()
 
 def get_entities(text: str) -> list:
-    """
-    Extract named entities from text using NLTK.
-    Tokenizes text, tags parts of speech, and chunks named entities.
-    Returns list of dicts with 'entity' and 'type' keys.
-    Handles errors gracefully by returning empty list.
-    """
     try:
         tokens = nltk.word_tokenize(text)
         tags = nltk.pos_tag(tokens)
         tree = nltk.ne_chunk(tags)
-        entities = []
-        for subtree in tree:
-            if isinstance(subtree, nltk.Tree):
-                entity = " ".join([word for word, tag in subtree.leaves()])
-                label = subtree.label()
-                entities.append({"entity": entity, "type": label})
-        return entities
+        return [{"entity": " ".join([word for word, tag in subtree.leaves()]), "type": subtree.label()} for subtree in tree if isinstance(subtree, nltk.Tree)]
     except Exception as e:
         print(f"Error extracting entities: {e}")
         return []
 
 def get_roles(text: str) -> list:
-    """
-    Extract semantic roles based on POS tags.
-    Classifies nouns as 'entity' and verbs as 'action'.
-    Returns list of dicts with 'word' and 'role'.
-    Handles errors by returning empty list.
-    """
     try:
         tokens = nltk.word_tokenize(text)
         tags = nltk.pos_tag(tokens)
-        roles = []
-        for word, tag in tags:
-            if tag.startswith("NN"):
-                roles.append({"word": word, "role": "entity"})
-            elif tag.startswith("VB"):
-                roles.append({"word": word, "role": "action"})
-        return roles
+        return [{"word": word, "role": "entity" if tag.startswith("NN") else "action"} for word, tag in tags if tag.startswith("NN") or tag.startswith("VB")]
     except Exception as e:
         print(f"Error extracting roles: {e}")
         return []
