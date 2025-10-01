@@ -6,3 +6,6 @@ flask
 requests
 noisereduce
 librosa
+deepface
+opencv-python
+tf-keras

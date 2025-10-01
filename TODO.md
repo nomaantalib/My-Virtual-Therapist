@@ -1,12 +1,12 @@
-# Refactoring Plan for AGI Therapist Perception Module
+# TODO for Real-Time Camera Display During Recording
 
 ## Tasks
-- [x] Refactor tone/tone_sentiment_live.py: Reduce emotion_lexicon to essential emotions, simplify detect_emotions using list comprehension, optimize analyze_tone logic.
-- [x] Refactor nlu/nlu_live.py: Use list comprehensions for get_entities and get_roles to reduce LOC.
-- [x] Refactor stt/stt_live.py: Minor simplifications, e.g., combine record and reduce noise if possible.
-- [x] Refactor app.py: Extract the analysis logic from the analyze route into a helper function.
-- [x] Refactor main_live.py: Simplify the quit listener or integrate better.
 
-## Progress
-- [x] Created TODO.md
-- [x] Refactored tone/tone_sentiment_live.py
+- [x] Update templates/index.html to add a video element for live camera feed
+- [x] Modify JavaScript in index.html to start video stream when recording starts and stop when recording stops
+- [ ] Test the application by running it and verifying the live camera display during recording
+
+## Completed
+
+- [x] Analyze project files and create plan
+- [x] Get user confirmation on plan

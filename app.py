@@ -4,6 +4,7 @@ import os
 from stt.stt_live import save_wav, transcribe_audio
 from tone.tone_sentiment_live import analyze_tone
 from nlu.nlu_live import nlu_process
+from facial.facial_emotion import analyze_facial_emotion
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -20,7 +21,9 @@ def process_audio(audio_file):
     try:
         transcript = transcribe_audio(temp_filename)
         tone = analyze_tone(transcript)
+        facial_emotion = analyze_facial_emotion()
         result = nlu_process(transcript, tone)
+        result['facial_emotion'] = facial_emotion
         return result
     finally:
         if os.path.exists(temp_filename):

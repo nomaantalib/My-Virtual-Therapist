@@ -11,12 +11,15 @@ import sys
 from stt.stt_live import start_stt, stop_stream
 from tone.tone_sentiment_live import analyze_tone
 from nlu.nlu_live import nlu_process
+from facial.facial_emotion import analyze_facial_emotion
 
 def handle_text(text: str, audio):
     tone = analyze_tone(text, audio)
+    facial_emotion = analyze_facial_emotion()
     result = nlu_process(text, tone)
     print("\n🗣️ Transcript:", text)
     print("🤖 AGI Response:", result)
+    print("😊 Facial Emotion:", facial_emotion)
 
 def listen_for_quit():
     print("\nPress 'q' + Enter anytime to quit...\n")

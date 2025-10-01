@@ -1,173 +1,208 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>AGI Therapist Perception Module</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
+      .container {
+        text-align: center;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        color: white;
+      }
+      #start {
+        background-color: #4caf50;
+      }
+      #start:hover {
+        background-color: #45a049;
+      }
+      #stop {
+        background-color: #f44336;
+        display: none;
+      }
+      #stop:hover {
+        background-color: #da190b;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #timer {
+        margin: 10px;
+        font-size: 18px;
+        color: #333;
+      }
+      #loading {
+        display: none;
+        margin-top: 20px;
+      }
+      #result {
+        margin-top: 20px;
+        white-space: pre-wrap;
+        text-align: left;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 600px;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #camera {
+        margin-top: 20px;
+        width: 100%;
+        max-width: 600px;
+        border-radius: 5px;
+        display: none;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-height: 90vh;
-            overflow-y: auto;
+        100% {
+          transform: rotate(360deg);
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            color: white;
-        }
-        #start {
-            background-color: #4CAF50;
-        }
-        #start:hover {
-            background-color: #45a049;
-        }
-        #stop {
-            background-color: #f44336;
-            display: none;
-        }
-        #stop:hover {
-            background-color: #da190b;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #timer {
-            margin: 10px;
-            font-size: 18px;
-            color: #333;
-        }
-        #loading {
-            display: none;
-            margin-top: 20px;
-        }
-        #result {
-            margin-top: 20px;
-            white-space: pre-wrap;
-            text-align: left;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 5px;
-            max-width: 600px;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>AGI Therapist Perception Module</h1>
-        <p>Click start to begin recording (max 10 seconds). Click stop to analyze.</p>
-        <button id="start" onclick="startRecording()">Start Recording</button>
-        <button id="stop" onclick="stopRecording()">Stop Recording</button>
-        <div id="timer">Time: 0s</div>
-        <div id="loading">
-            <p>Processing... Please wait.</p>
-            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto;"></div>
-        </div>
-        <div id="result"></div>
+      <h1>AGI Therapist Perception Module</h1>
+      <p>
+        Click start to begin recording (max 10 seconds). Click stop to analyze.
+      </p>
+      <button id="start" onclick="startRecording()">Start Recording</button>
+      <button id="stop" onclick="stopRecording()">Stop Recording</button>
+      <div id="timer">Time: 0s</div>
+      <video id="camera" autoplay muted></video>
+      <div id="loading">
+        <p>Processing... Please wait.</p>
+        <div
+          style="
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+          "
+        ></div>
+      </div>
+      <div id="result"></div>
     </div>
     <script>
-        let mediaRecorder;
-        let audioChunks = [];
-        let startTime;
-        let timerInterval;
-        const maxDuration = 10; // seconds
+      let mediaRecorder;
+      let audioChunks = [];
+      let startTime;
+      let timerInterval;
+      let stream;
+      const maxDuration = 10; // seconds
 
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                startTime = Date.now();
+      async function startRecording() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          startTime = Date.now();
 
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
 
-                mediaRecorder.onstop = () => {
-                    stream.getTracks().forEach(track => track.stop());
-                    sendAudio();
-                };
+          mediaRecorder.onstop = () => {
+            stream.getTracks().forEach((track) => track.stop());
+            sendAudio();
+          };
 
-                mediaRecorder.start();
-                document.getElementById('start').style.display = 'none';
-                document.getElementById('stop').style.display = 'inline-block';
-                document.getElementById('timer').innerText = 'Time: 0s';
+          mediaRecorder.start();
+          document.getElementById("start").style.display = "none";
+          document.getElementById("stop").style.display = "inline-block";
+          document.getElementById("timer").innerText = "Time: 0s";
+          const camera = document.getElementById("camera");
+          camera.srcObject = stream;
+          camera.style.display = "block";
 
-                // Timer
-                timerInterval = setInterval(() => {
-                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                    document.getElementById('timer').innerText = `Time: ${elapsed}s`;
-                    if (elapsed >= maxDuration) {
-                        stopRecording();
-                    }
-                }, 1000);
-
-                // Auto stop after max duration
-                setTimeout(() => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        stopRecording();
-                    }
-                }, maxDuration * 1000);
-            } catch (error) {
-                document.getElementById('result').innerText = 'Error accessing microphone: ' + error.message;
+          // Timer
+          timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById("timer").innerText = `Time: ${elapsed}s`;
+            if (elapsed >= maxDuration) {
+              stopRecording();
             }
-        }
+          }, 1000);
 
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                clearInterval(timerInterval);
-                document.getElementById('stop').style.display = 'none';
-                document.getElementById('start').style.display = 'inline-block';
+          // Auto stop after max duration
+          setTimeout(() => {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+              stopRecording();
             }
+          }, maxDuration * 1000);
+        } catch (error) {
+          document.getElementById("result").innerText =
+            "Error accessing microphone: " + error.message;
         }
+      }
 
-        async function sendAudio() {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'recording.wav');
-
-            const loading = document.getElementById('loading');
-            const result = document.getElementById('result');
-            loading.style.display = 'block';
-            result.innerText = '';
-
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                result.innerText = JSON.stringify(data, null, 2);
-            } catch (error) {
-                result.innerText = 'Error: ' + error.message;
-            } finally {
-                loading.style.display = 'none';
-            }
+      function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+          clearInterval(timerInterval);
+          document.getElementById("stop").style.display = "none";
+          document.getElementById("start").style.display = "inline-block";
+          const camera = document.getElementById("camera");
+          camera.srcObject = null;
+          camera.style.display = "none";
         }
+      }
+
+      async function sendAudio() {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "recording.wav");
+
+        const loading = document.getElementById("loading");
+        const result = document.getElementById("result");
+        loading.style.display = "block";
+        result.innerText = "";
+
+        try {
+          const response = await fetch("/analyze", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+          result.innerText = JSON.stringify(data, null, 2);
+        } catch (error) {
+          result.innerText = "Error: " + error.message;
+        } finally {
+          loading.style.display = "none";
+        }
+      }
     </script>
-</body>
+  </body>
 </html>

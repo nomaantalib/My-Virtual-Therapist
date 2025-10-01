@@ -15,7 +15,7 @@ from config import API_KEY   # import from root config
 
 stop_stream = False
 
-def record_audio(duration=5) -> np.ndarray:
+def record_audio(duration=10) -> np.ndarray:
     fs = 16000
     recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
     sd.wait()
