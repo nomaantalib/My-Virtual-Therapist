@@ -1,267 +1,265 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AGI Therapist</title>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <title>AGI Therapist Perception Module</title>
     <style>
       body {
         font-family: Arial, sans-serif;
-        margin: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
       }
       .container {
-        display: flex;
-      }
-      .input-section {
-        flex: 1;
+        text-align: center;
+        background: white;
         padding: 20px;
-      }
-      .output-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      .output-div {
-        flex: 1;
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin: 10px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-height: 90vh;
         overflow-y: auto;
-        height: 200px;
-      }
-      .module-result {
-        border: 1px solid #ddd;
-        padding: 10px;
-        margin: 5px 0;
       }
       button {
-        margin: 5px;
-        padding: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        color: white;
       }
-      input,
-      textarea {
-        width: 100%;
-        margin: 5px 0;
+      #record {
+        background-color: #4caf50;
+      }
+      #record:hover {
+        background-color: #45a049;
+      }
+      #record.recording {
+        background-color: #f44336;
+      }
+      #record.recording:hover {
+        background-color: #da190b;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #timer {
+        margin: 10px;
+        font-size: 18px;
+        color: #333;
       }
       #loading {
-        text-align: center;
-        font-size: 20px;
-        color: blue;
+        display: none;
+        margin-top: 20px;
+      }
+      #result-section {
+        margin-top: 20px;
+        text-align: left;
+        background: #e9e9e9;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 600px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .memory-section {
+        margin-top: 20px;
+        text-align: left;
+        background: #e9e9e9;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 600px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .memory-section h3 {
+        margin-top: 0;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
       video {
-        width: 100%;
-        max-width: 400px;
+        width: 300px;
+        height: 200px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        display: none;
       }
     </style>
   </head>
   <body>
-    <h1>AGI Therapist</h1>
     <div class="container">
-      <div class="input-section">
-        <h2>Live Audio and Camera Input</h2>
-        <button id="startConvoBtn">Start Convo</button>
-        <button id="stopConvoBtn" disabled>Stop Convo</button>
-        <br />
-        <video id="video" autoplay muted></video>
-        <br />
-      <div id="loading" style="display: none">Analyzing...</div>
-      <div id="error_message" style="color: red; display: none;"></div>
-        <div id="analysis_result">
-          <h3>Analysis Results</h3>
-          <div id="stt_result" class="module-result"></div>
-          <div id="tone_result" class="module-result"></div>
-          <div id="nlu_result" class="module-result"></div>
-          <div id="facial_result" class="module-result"></div>
-          <div id="memory_result" class="module-result"></div>
-        </div>
+      <h1>AGI Therapist Perception Module</h1>
+      <p>
+        Click the button to start recording (max 10 seconds). It will access mic
+        and camera simultaneously.
+      </p>
+      <button id="record" onclick="toggleRecording()">Start Recording</button>
+      <div id="timer">Time: 0s</div>
+      <div id="loading">
+        <p>Processing... Please wait.</p>
+        <div
+          style="
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+          "
+        ></div>
       </div>
-      <div class="output-panel">
-        <div class="output-div" id="working_memory">
-          <h3>Working Memory History</h3>
-          <div id="working_content"></div>
-        </div>
-        <div class="output-div" id="long_term_memory">
-          <h3>Long Term Memory History</h3>
-          <div id="long_term_content"></div>
-        </div>
-        <div class="output-div" id="logs">
-          <h3>Logs</h3>
-          <div id="logs_content"></div>
-        </div>
+      <div id="result-section">
+        <h3>Perception Result</h3>
+        <div id="result"></div>
       </div>
+      <div class="memory-section">
+        <h3>Working Memory Logs</h3>
+        <div id="wm-logs"></div>
+      </div>
+      <div class="memory-section">
+        <h3>Long-Term Memory Logs</h3>
+        <div id="ltm-logs"></div>
+      </div>
+      <video id="video" autoplay muted></video>
     </div>
     <script>
-      const socket = io();
       let mediaRecorder;
-      let stream;
-      let recordingInterval;
+      let audioChunks = [];
+      let videoStream;
+      let startTime;
+      let timerInterval;
+      let isRecording = false;
+      const maxDuration = 10; // seconds
 
-      const startConvoBtn = document.getElementById("startConvoBtn");
-      const stopConvoBtn = document.getElementById("stopConvoBtn");
-      const loading = document.getElementById("loading");
-      const video = document.getElementById("video");
-
-      function recordAndSend() {
-        if (!stream) return;
-        mediaRecorder = new MediaRecorder(stream);
-        let chunks = [];
-        mediaRecorder.ondataavailable = (event) => {
-          chunks.push(event.data);
-        };
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(chunks, { type: "audio/wav" });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const audioB64 = reader.result.split(",")[1];
-            // Capture image
-            const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext("2d").drawImage(video, 0, 0);
-            canvas.toBlob((imageBlob) => {
-              const imageReader = new FileReader();
-              imageReader.onloadend = () => {
-                const imageB64 = imageReader.result.split(",")[1];
-                socket.emit("audio_data", { audio: audioB64, image: imageB64 });
-                loading.style.display = "block";
-                // Restart recording after short delay
-                recordingInterval = setTimeout(recordAndSend, 1000);
-              };
-              imageReader.readAsDataURL(imageBlob);
-            });
-          };
-          reader.readAsDataURL(audioBlob);
-        };
-        mediaRecorder.start();
-        setTimeout(() => {
-          if (mediaRecorder && mediaRecorder.state === "recording") {
-            mediaRecorder.stop();
-          }
-        }, 4000); // Record 4 seconds
+      async function toggleRecording() {
+        const button = document.getElementById("record");
+        if (!isRecording) {
+          await startRecording();
+          button.innerText = "Stop Recording";
+          button.classList.add("recording");
+        } else {
+          stopRecording();
+          button.innerText = "Start Recording";
+          button.classList.remove("recording");
+        }
       }
 
-      startConvoBtn.addEventListener("click", async () => {
+      async function startRecording() {
         try {
-          stream = await navigator.mediaDevices.getUserMedia({
+          const stream = await navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
           });
-          video.srcObject = stream;
-          startConvoBtn.disabled = true;
-          stopConvoBtn.disabled = false;
-          recordAndSend();
+          videoStream = stream;
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          startTime = Date.now();
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            stream.getTracks().forEach((track) => track.stop());
+            sendData();
+          };
+
+          mediaRecorder.start();
+          const videoElement = document.getElementById("video");
+          videoElement.srcObject = stream;
+          videoElement.style.display = "block";
+          isRecording = true;
+
+          document.getElementById("timer").innerText = "Time: 0s";
+
+          // Timer
+          timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById("timer").innerText = `Time: ${elapsed}s`;
+            if (elapsed >= maxDuration) {
+              toggleRecording();
+            }
+          }, 1000);
+
+          // Auto stop after max duration
+          setTimeout(() => {
+            if (isRecording) {
+              toggleRecording();
+            }
+          }, maxDuration * 1000);
         } catch (error) {
-          alert("Error accessing microphone/camera: " + error.message);
+          document.getElementById("result").innerText =
+            "Error accessing microphone/camera: " + error.message;
         }
-      });
+      }
 
-      stopConvoBtn.addEventListener("click", () => {
-        if (recordingInterval) {
-          clearTimeout(recordingInterval);
-        }
+      async function stopRecording() {
         if (mediaRecorder && mediaRecorder.state === "recording") {
+          // Capture image before stopping
+          const videoElement = document.getElementById("video");
+          const canvas = document.createElement("canvas");
+          canvas.width = videoElement.videoWidth || 640;
+          canvas.height = videoElement.videoHeight || 480;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          window.capturedImage = await new Promise((resolve) =>
+            canvas.toBlob(resolve, "image/png")
+          );
+
           mediaRecorder.stop();
+          clearInterval(timerInterval);
+          isRecording = false;
+          videoElement.style.display = "none";
+          videoElement.srcObject = null;
+          videoStream.getTracks().forEach((track) => track.stop());
         }
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-        startConvoBtn.disabled = false;
-        stopConvoBtn.disabled = true;
-        loading.style.display = "none";
-      });
-
-      socket.on("analysis_result", (data) => {
-        loading.style.display = "none";
-        document.getElementById("error_message").style.display = "none";
-        document.getElementById(
-          "stt_result"
-        ).innerHTML = `<strong>STT Transcript:</strong> ${
-          data.transcript || "N/A"
-        }`;
-        document.getElementById(
-          "tone_result"
-        ).innerHTML = `<strong>Tone Analysis:</strong> ${JSON.stringify(
-          data.tone || {}
-        )}`;
-        document.getElementById(
-          "nlu_result"
-        ).innerHTML = `<strong>NLU Result:</strong> ${JSON.stringify(
-          data.nlu || {}
-        )}`;
-        document.getElementById(
-          "facial_result"
-        ).innerHTML = `<strong>Facial Emotion:</strong> ${JSON.stringify(
-          data.facial_emotion || {}
-        )}`;
-        document.getElementById(
-          "memory_result"
-        ).innerHTML = `<strong>Memory Updated</strong>`;
-        updateHistories();
-        updateLogs();
-      });
-
-      socket.on("analysis_error", (data) => {
-        loading.style.display = "none";
-        document.getElementById("error_message").style.display = "block";
-        document.getElementById("error_message").innerText = "Analysis Error: " + data.error;
-      });
-
-      function updateHistories() {
-        fetch("/get_working_history")
-          .then((response) => response.json())
-          .then((data) => {
-            const content = data
-              .map(
-                (item) =>
-                  `<p><strong>User:</strong> ${
-                    item.user_input
-                  }<br><strong>Therapist:</strong> ${
-                    item.system_output
-                  }<br><strong>Tags:</strong> ${
-                    item.emotion_tags ? item.emotion_tags.join(", ") : "None"
-                  }</p>`
-              )
-              .join("");
-            document.getElementById("working_content").innerHTML = content;
-          });
-
-        fetch("/get_long_term_history")
-          .then((response) => response.json())
-          .then((data) => {
-            const content = data
-              .map(
-                (item) =>
-                  `<p><strong>Timestamp:</strong> ${
-                    item.timestamp
-                  }<br><strong>User:</strong> ${
-                    item.user_input
-                  }<br><strong>Therapist:</strong> ${
-                    item.system_output
-                  }<br><strong>Tags:</strong> ${
-                    item.emotion_tags ? item.emotion_tags.join(", ") : "None"
-                  }</p>`
-              )
-              .join("");
-            document.getElementById("long_term_content").innerHTML = content;
-          });
       }
 
-      function updateLogs() {
-        fetch("/get_logs")
-          .then((response) => response.json())
-          .then((data) => {
-            const content = data.map((log) => `<p>${log}</p>`).join("");
-            document.getElementById("logs_content").innerHTML = content;
-          });
-      }
+      async function sendData() {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "recording.wav");
 
-      // Load histories and logs on page load
-      window.onload = () => {
-        updateHistories();
-        updateLogs();
-      };
+        formData.append("image", window.capturedImage, "snapshot.png");
+
+        const loading = document.getElementById("loading");
+        const result = document.getElementById("result");
+        const wmLogs = document.getElementById("wm-logs");
+        const ltmLogs = document.getElementById("ltm-logs");
+        loading.style.display = "block";
+        result.innerText = "";
+        wmLogs.innerText = "";
+        ltmLogs.innerText = "";
+
+        try {
+          const response = await fetch("/analyze", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+          result.innerText = JSON.stringify(data.perception, null, 2);
+          wmLogs.innerText = JSON.stringify(data.working_memory, null, 2);
+          ltmLogs.innerText = JSON.stringify(data.long_term_memory, null, 2);
+        } catch (error) {
+          result.innerText = "Error: " + error.message;
+        } finally {
+          loading.style.display = "none";
+        }
+      }
     </script>
   </body>
 </html>

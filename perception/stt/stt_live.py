@@ -39,24 +39,31 @@ def transcribe_audio(filename: str) -> str:
     Raises Exception on transcription error.
     """
     headers = {"authorization": API_KEY}
-    with open(filename, 'rb') as f:
-        response = requests.post("https://api.assemblyai.com/v2/upload", headers=headers, data=f)
-    upload_url = response.json()["upload_url"]
+    try:
+        with open(filename, 'rb') as f:
+            response = requests.post("https://api.assemblyai.com/v2/upload", headers=headers, data=f)
+        response.raise_for_status()
+        upload_url = response.json()["upload_url"]
 
-    transcript_request = {
-        "audio_url": upload_url
-    }
-    response = requests.post("https://api.assemblyai.com/v2/transcript", json=transcript_request, headers=headers)
-    transcript_id = response.json()["id"]
+        transcript_request = {
+            "audio_url": upload_url
+        }
+        response = requests.post("https://api.assemblyai.com/v2/transcript", json=transcript_request, headers=headers)
+        response.raise_for_status()
+        transcript_id = response.json()["id"]
 
-    while True:
-        response = requests.get(f"https://api.assemblyai.com/v2/transcript/{transcript_id}", headers=headers)
-        data = response.json()
-        if data["status"] == "completed":
-            return data["text"]
-        elif data["status"] == "error":
-            raise Exception(data["error"])
-        time.sleep(1)
+        while True:
+            response = requests.get(f"https://api.assemblyai.com/v2/transcript/{transcript_id}", headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            if data["status"] == "completed":
+                return data["text"]
+            elif data["status"] == "error":
+                raise Exception(data["error"])
+            time.sleep(1)
+    except requests.exceptions.RequestException as e:
+        print(f"Error during transcription API call: {e}")
+        return ""
 
 async def start_stt(callback, duration=5):
     """

@@ -17,7 +17,7 @@ def analyze_facial_emotion(image=None):
         else:
             frame = image
 
-        analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+        analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False, detector_backend='opencv')
         if isinstance(analysis, list) and len(analysis) > 0:
             result = analysis[0]
         elif isinstance(analysis, dict):

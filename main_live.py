@@ -7,35 +7,17 @@ import asyncio
 import threading
 import sys
 
-# Import modules from subfolders
-from perception_module.stt.stt_live import start_stt, stop_stream
-from perception_module.tone.tone_sentiment_live import analyze_tone
-from perception_module.nlu.nlu_live import nlu_process
-from perception_module.facial.facial_emotion import analyze_facial_emotion
-from memory.working_memory import WorkingMemory
-from memory.long_term_memory import LongTermMemory
+from integration import Integration
+from perception.stt.stt_live import start_stt
 
-# Initialize memory modules
-working_memory = WorkingMemory()
-long_term_memory = LongTermMemory()
-interaction_counter = 0
+# Initialize integrated system
+integration = Integration()
 
 def handle_text(text: str, audio):
-    tone = analyze_tone(text, audio)
-    facial_emotion = analyze_facial_emotion()
-    result = nlu_process(text, tone)
-    working_memory.add_interaction(text, str(result), [])
-    global interaction_counter
-    interaction_counter += 1
-    if interaction_counter >= 5:
-        session_id = f"live_session_{interaction_counter // 5}"
-        for interaction in working_memory.get_context():
-            long_term_memory.store_interaction("user", interaction["user_input"], interaction["system_output"], interaction["emotion_tags"])
-        working_memory.clear()
-        interaction_counter = 0
-    print("\n🗣️ Transcript:", text)
-    print("🤖 AGI Response:", result)
-    print("😊 Facial Emotion:", facial_emotion)
+    result = integration.process_input(audio)
+    print("\n🗣️ Transcript:", result.get("transcript", ""))
+    print("🤖 AGI Response:", result.get("nlu", {}))
+    print("😊 Facial Emotion:", result.get("facial_emotion", {}))
 
 def listen_for_quit():
     print("\nPress 'q' + Enter anytime to quit...\n")
